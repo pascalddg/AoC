@@ -20,20 +20,17 @@ def cpu(prog):
     pc = 0
     clock = 0        #this is just for fun
     tracer = set()
-
     halt = False
-    while not halt:
+    while not halt and pc not in tracer:
+        tracer.add(pc)    
         clock+=1
-
-        instr = prog[pc][0]
         oldpc = pc
-        oldacc = acc
-
+        instr, arg = prog[pc]
         if instr == 'acc':
-            acc += int(prog[pc][1])
+            acc += int(arg)
             pc += 1
         elif instr == 'jmp':
-            pc += int(prog[pc][1])
+            pc += int(arg)
             #infinite loop detector
             if pc==oldpc:
                 halt = True
@@ -43,37 +40,30 @@ def cpu(prog):
         else:
             print(f'ERR, unknown instruction: {instr}')
             halt = True
-        #loop detector
-        if oldpc not in tracer:
-            tracer.add(oldpc)    
-        else:
-            halt = True
-
         #end of program detector
         if pc == len(prog):
             halt = True
 
 #    print(f'HALT: PC = {pc}, ACC = {acc}, oldPC = {oldpc}, oldACC = {oldacc}, INSTR = {instr}, CLOCK = {clock}')
-    return acc, oldacc, pc
+    return acc, pc
 
 data = load_data()
 # uncomment the below line to work on the test data
 #data = test_data.splitlines()
 
 program = [line.split(' ') for line in data]
-acc, oldacc, pc = cpu(program)
-print(f'{oldacc=}')
+acc, pc = cpu(program)
+print(f'Result 1 = {acc}')
 
 for line in program:
     if line[0] == 'nop':
         line[0] = 'jmp'
-        acc, oldacc, pc = cpu(program)
+        acc, pc = cpu(program)
         line[0] = 'nop'
     elif line[0] == 'jmp':
         line[0] = 'nop'
-        acc, oldacc, pc = cpu(program)
+        acc, pc = cpu(program)
         line[0] = 'jmp'
     if pc == len(program):
-        print(f"\nSUCCESS: {acc}\n")
+        print(f"Result 2: {acc}\n")
         break
-
