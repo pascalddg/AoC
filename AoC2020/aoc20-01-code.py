@@ -19,4 +19,4 @@ for el in numbers:
     for em in numbers:
         diff = 2020 - el - em
         if diff in numbers:
-            print (f'x:{el}, y:{diff}, z:{em}, mul = {el*em*diff}') 
+            print (f'x:{el}, y:{diff}, z:{em}, mul = {el*em*diff}')
