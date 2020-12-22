@@ -25,7 +25,7 @@ data = load_data()
 # uncomment the below line to work on the test data
 #data = test_data.splitlines()
 
-ranges = []
+rules = []
 ticket = []
 nearby_tickets = []
 
@@ -33,9 +33,11 @@ data_iter = iter(data)
 for line in data_iter:
     if not len(line):
         break
-    for range in line[line.find(':')+2:].split(' or '):
-        beg,end = range.split('-')
-        ranges.append((int(beg), int(end)))
+    name, ranges = line.split(': ')
+    rtx1, rtx2 = ranges.split(' or ')
+    ra = tuple(map(int, rtx1.split('-')))
+    rb = tuple(map(int, rtx2.split('-')))
+    rules.append((name, ra, rb))
 
 next(data_iter)
 line = next(data_iter)
@@ -47,21 +49,24 @@ for line in data_iter:
     numbers = [int(x) for x in line.split(',')]
     nearby_tickets.append(numbers)
 
-print(f'{ranges=}')
-print(f'{ticket=}')
-print(f'{nearby_tickets=}')
 invalids = []
+valid_tickets = []
 for ticket in nearby_tickets:
+    is_ticket_valid = True
     for number in ticket:
-        valid = False
-        for r in ranges:
-            if r[0]<=number<=r[1]:
-                valid = True
+        valid_number = False
+        for name, ra, rb in rules:
+            if ra[0]<=number<=ra[1] or rb[0]<=number<=rb[1]:
+                valid_number = True
                 break
-        if not valid:
+        if not valid_number:
             invalids.append(number)
+            is_ticket_valid = False
+    if is_ticket_valid:
+        valid_tickets.append(ticket)
 
-print(f'{invalids=}')
+print(f'nearby_tickets = {len(nearby_tickets)}')
+print(f'valid_tickets = {len(valid_tickets)}')
 
 result = sum(invalids)
 print(f'result 1 = {result}')
