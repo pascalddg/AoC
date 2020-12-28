@@ -38,6 +38,18 @@ def count_neighbors4d(p_pocket,px,py,pz,pw):
     return counter
 
 
+def get_neighbors4d(p_point):
+    neighbors = set()
+    px,py,pz,pw = p_point
+    for x in range(px-1,px+2):
+        for y in range(py-1,py+2):
+            for z in range(pz-1,pz+2):
+                for w in range(pw-1,pw+2):
+                    neighbors.add((x,y,z,w))
+
+    return neighbors
+
+
 def calculate_minimaxi(pmini,pmaxi,x,y,z,w=None):
     rmini = [0] * len(pmini)
     rmaxi = [0] * len(pmaxi)
@@ -78,7 +90,7 @@ for cycle in range(6):
 result = len(pocket)
 print(f'result 1 = {result}')
 
-#part two
+#part two v1 SLOWER: 2.30s
 t1 = time.perf_counter()
 pocket = set()
 mini = [0,0,0,0]
@@ -106,6 +118,37 @@ for cycle in range(6):
 
 result2 = len(pocket)
 
-print(f'result 2 = {result2}')
+print(f'result 2 v1 = {result2}')
+t2 = time.perf_counter()
+print(f'time = {(t2-t1):.2f}') 
+
+#part two v2 FASTER: 1.00s
+t1 = time.perf_counter()
+pocket = set()
+
+for x, line in enumerate(data):
+    for y, c in enumerate(line):
+        if c=='#':
+            pocket.add((x,y,0,0))
+
+for cycle in range(6):
+    next_pocket = set()
+
+    to_check = set()
+    for point in pocket:
+        to_check.update(get_neighbors4d(point))
+
+    for x,y,z,w in to_check:
+        neighbors = count_neighbors4d(pocket,x,y,z,w)
+        if neighbors == 3 or (neighbors==2 and (x,y,z,w) in pocket):
+            next_pocket.add((x,y,z,w))
+
+    pocket = next_pocket
+    print(f'{cycle}: {len(pocket)}')
+
+
+result2 = len(pocket)
+
+print(f'result 2 v2 = {result2}')
 t2 = time.perf_counter()
 print(f'time = {(t2-t1):.2f}') 
