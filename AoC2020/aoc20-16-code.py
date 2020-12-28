@@ -1,4 +1,5 @@
 import time
+import math
 
 test_data = """class: 1-3 or 5-7
 row: 6-11 or 33-44
@@ -15,7 +16,7 @@ nearby tickets:
 
 
 def load_data():
-    with open("aoc20-16-data.txt", "r") as f:
+    with open("AoC2020/aoc20-16-data.txt", "r") as f:
         data = f.read().splitlines() 
     print("Loaded lines:", len(data))
     return data
@@ -26,7 +27,7 @@ data = load_data()
 #data = test_data.splitlines()
 
 rules = []
-ticket = []
+my_ticket = []
 nearby_tickets = []
 
 data_iter = iter(data)
@@ -41,7 +42,7 @@ for line in data_iter:
 
 next(data_iter)
 line = next(data_iter)
-ticket = [int(x) for x in line.split(',')]
+my_ticket = [int(x) for x in line.split(',')]
 
 next(data_iter)
 next(data_iter)
@@ -74,8 +75,34 @@ print(f'result 1 = {result}')
 #part 2 TODO
 t1 = time.perf_counter()
 
+fields  = []
+for i in range(len(my_ticket)):
+    fields.append((i, [name for name, _, _ in rules]))
 
-result2 =None
+for name, ra, rb in rules:
+    for n_idx in range(len(my_ticket)):
+        for t_idx in range(len(valid_tickets)):
+            number = valid_tickets[t_idx][n_idx]
+            if not (ra[0]<=number<=ra[1] or rb[0]<=number<=rb[1]):
+                fields[n_idx][1].remove(name)
+                break
+fields.sort(key = lambda x:len(x[1]))
+
+for i, field in enumerate(fields):
+    for field_2 in fields[i+1:]:
+        if len(field_2[1])<=1:
+            print('\nERROR\n')
+        elif field[1][0] in field_2[1]:
+            field_2[1].remove(field[1][0])
+
+departures = []
+for idx, name in fields:
+    if name[0].startswith('departure'):
+        departures.append(my_ticket[idx])
+        print (idx,' ', name[0], ' ', my_ticket[idx])
+print(departures)
+
+result2 = math.prod(departures)
 print(f'result 2 = {result2}')
 t2 = time.perf_counter()
-print(f'time = {(t2-t1):.2f}')
+print(f'time = {(t2-t1):.2f}') 
