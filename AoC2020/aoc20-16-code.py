@@ -26,7 +26,7 @@ data = load_data()
 # uncomment the below line to work on the test data
 #data = test_data.splitlines()
 
-rules = []
+rules = []    # list of tuples (filed_name, rule_a, rule_b)
 my_ticket = []
 nearby_tickets = []
 
@@ -78,9 +78,7 @@ print(f'result 1 = {result}')
 t1 = time.perf_counter()
 
 # create list of fields indexes with potential matching field names. initially all
-fields  = []
-for i in range(len(my_ticket)):
-    fields.append((i, [name for name, _, _ in rules]))
+fields = [(i, [name for name, _, _ in rules]) for i in range(len(my_ticket))]
 
 # filter out(remove) field names that breaks rules
 for name, ra, rb in rules:
@@ -102,11 +100,7 @@ for i, field in enumerate(fields):
             field_2[1].remove(field[1][0])
 
 # collect values for fields starting with departure
-departures = []
-for idx, name in fields:
-    if name[0].startswith('departure'):
-        departures.append(my_ticket[idx])
-        print (idx,' ', name[0], ' ', my_ticket[idx])
+departures = [my_ticket[idx] for idx, name in fields if name[0].startswith('departure')]
 
 print(departures)
 
