@@ -77,7 +77,6 @@ expr = re.compile('^'+regexp+'$')
 
 counter = 0
 # for line in messages:
-#     print(int(expr.match(line)!=None))
 #     if expr.match(line):
 #         counter +=1
 counter = reduce(lambda a,line: a+int(expr.match(line)!=None),messages,0)
@@ -96,9 +95,10 @@ regexp = build_regexp2(rules,'0')
 expr = re.compile('^'+regexp+'$')
 
 counter = 0
-for line in messages:
-    if expr.match(line):
-        counter +=1
+# for line in messages:
+#     if expr.match(line):
+#         counter +=1
+counter = sum((1 for line in messages if expr.match(line)))
 
 result2 = counter
 print(f'result 2 = {result2}')
