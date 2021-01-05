@@ -22,17 +22,13 @@ def flip_h(edges):
     return [edges[2],edges[1][::-1],edges[0],edges[3][::-1]]
 
 
-def flip_v(edges):
-    return [edges[0][::-1],edges[3],edges[2][::-1],edges[1]]
-
-
 def rotate(edges):
     return [edges[3][::-1],edges[0],edges[1][::-1],edges[2]]
 
 
 def get_shapes(p_tile):
+
     edges=[0,0,0,0]
-    shapes = set()
     edges[0]=p_tile[1][0]
     edges[2]=p_tile[1][9]
     e1, e3 =[], []
@@ -42,12 +38,11 @@ def get_shapes(p_tile):
     edges[1]=''.join(e1)
     edges[3]=''.join(e3)
     edges = [s.replace('.','0').replace('#','1') for s in edges]
-    
+
+    shapes = set()
     for i in range(4):
         shapes.add(edge2shape(edges))
         shapes.add(edge2shape(flip_h(edges)))
-        shapes.add(edge2shape(flip_v(edges)))
-        shapes.add(edge2shape(flip_h(flip_v(edges))))
         edges = rotate(edges)
         
     return tuple(shapes)
@@ -187,6 +182,7 @@ for i,tile in enumerate(tiles):
     found = dfs(mosaic, graf, tile,0,0,[], [i])
     if found:
         break
+
 if found:
     result1 = mosaic[0][0][0]\
             * mosaic[0][edge_len-1][0]\
