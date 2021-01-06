@@ -3,16 +3,21 @@ import math
 from itertools import product
 from collections import deque, defaultdict, namedtuple
 
+#TODO #2 make tile a class or namedtuple
+#TODO #3 use numpy for lines rotation
+#TODO #4 make 2nd part of the task
+
 def load_data():
     with open("AoC2020/aoc20-20-data.txt", "r") as f:
-        data = f.read().splitlines() 
-    print("Loaded lines:", len(data))
+        data = f.read()
+    print("Loaded lines:", len(data.splitlines()))
 
     with open("AoC2020/aoc20-20-testdata.txt", "r") as f:
-        testdata = f.read().splitlines() 
-    print("Loaded lines:", len(testdata))
+        testdata = f.read()
+    print("Loaded lines:", len(testdata.splitlines()))
  
     return data, testdata
+
 
 Shape = namedtuple('Shape',['N','E','S','W'])
 def edge2shape(edges):
@@ -52,17 +57,13 @@ def get_shapes(p_tile):
 # [id, [lines], [shapes], [matching tiles]]
 def parse_data(p_data):
     tiles = []
-    tile=[0,[],[],[]]
-    for line in data:
-        if line.startswith("Tile"):
-            tile[0]=int(line[5:-1])
-        elif not line:
-            tile[2]=get_shapes(tile)
-            tiles.append(tile)
-            tile=[0,[],[],[]]
-        else:
-            tile[1].append(line)
-    if tile[0]:
+     
+    segments = data.split('\n\n')
+    for segment in segments:
+        tile=[0,[],[],[]]
+        header, pattern = segment.split(':\n')
+        tile[0]=int(header[5:])
+        tile[1]=pattern.splitlines()
         tile[2]=get_shapes(tile)
         tiles.append(tile)
 
@@ -117,10 +118,10 @@ def dfs(mosaic, graf, tile, px, py, pstack):
                     result = dfs_helper(mosaic, graf, px-1, py, pstack, tile, shape.W)
                 elif px<len(mosaic)-1 and not mosaic[px+1][py]:
                     result = dfs_helper(mosaic, graf, px+1, py, pstack, tile, shape.E)
-                elif py>0 and not mosaic[px][py-1]:
-                    result = dfs_helper(mosaic, graf, px, py-1, pstack, tile, shape.S)
                 elif py<len(mosaic)-1 and not mosaic[px][py+1]:
                     result = dfs_helper(mosaic, graf, px, py+1, pstack, tile, shape.N)
+                # elif py>0 and not mosaic[px][py-1]:
+                #     result = dfs_helper(mosaic, graf, px, py-1, pstack, tile, shape.S)
 
                 if result:
                     return result
