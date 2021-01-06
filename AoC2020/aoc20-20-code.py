@@ -3,7 +3,6 @@ import math
 from itertools import product
 from collections import deque, defaultdict, namedtuple
 
-#TODO #2 make tile a class or namedtuple
 #TODO #3 use numpy for lines rotation
 #TODO #4 make 2nd part of the task
 
@@ -19,53 +18,51 @@ def load_data():
     return data, testdata
 
 
+def flip_h(borders):
+    return [borders[2],borders[1][::-1],borders[0],borders[3][::-1]]
+
+
+def rotate(borders):
+    return [borders[3][::-1],borders[0],borders[1][::-1],borders[2]]
+
+
 Shape = namedtuple('Shape',['N','E','S','W'])
-def edge2shape(edges):
-    return Shape(*edges)
-#    return tuple(int(line,2) for line in edges)
 
+def get_shapes(pattern):
 
-def flip_h(edges):
-    return [edges[2],edges[1][::-1],edges[0],edges[3][::-1]]
-
-
-def rotate(edges):
-    return [edges[3][::-1],edges[0],edges[1][::-1],edges[2]]
-
-
-def get_shapes(p_tile):
-
-    edges=[0,0,0,0]
-    edges[0]=p_tile[1][0]
-    edges[2]=p_tile[1][9]
+    borders = [0,0,0,0]
+    borders[0] = pattern[0]
+    borders[2] = pattern[9]
     e1, e3 =[], []
-    for line in p_tile[1]:
+    for line in pattern:
         e1.append(line[9])
         e3.append(line[0])
-    edges[1]=''.join(e1)
-    edges[3]=''.join(e3)
-    edges = [s.replace('.','0').replace('#','1') for s in edges]
+    borders[1] = ''.join(e1)
+    borders[3] = ''.join(e3)
+    borders = [s.replace('.', '0').replace('#', '1') for s in borders]
 
     shapes = set()
     for i in range(4):
-        shapes.add(edge2shape(edges))
-        shapes.add(edge2shape(flip_h(edges)))
-        edges = rotate(edges)
+        shapes.add(Shape(*borders))
+        shapes.add(Shape(*flip_h(borders)))
+        borders = rotate(borders)
         
     return tuple(shapes)
 
-# [id, [lines], [shapes], [matching tiles]]
+
+Tile = namedtuple('Tile',['id','pattern','shapes','edges'])
+
 def parse_data(p_data):
-    tiles = []
-     
+    tiles = []     
     segments = data.split('\n\n')
+
     for segment in segments:
-        tile=[0,[],[],[]]
         header, pattern = segment.split(':\n')
-        tile[0]=int(header[5:])
-        tile[1]=pattern.splitlines()
-        tile[2]=get_shapes(tile)
-        tiles.append(tile)
+        tile_id=int(header[5:])
+        pattern=pattern.splitlines()
+        shapes=get_shapes(pattern)
+        edges = None
+        tiles.append(Tile(tile_id, pattern,shapes, edges))
 
     return tiles
 
@@ -106,9 +103,9 @@ def dfs(mosaic, graf, tile, px, py, pstack):
 
     if tile not in pstack:
         pstack.append(tile)
-        for shape in tile[2]:
+        for shape in tile.shapes:
             if fit(mosaic, shape, px, py):
-                mosaic[px][py] = (tile[0], shape)
+                mosaic[px][py] = (tile.id, shape)
                 if len(pstack)==len(tiles):
                     return True
 
@@ -143,9 +140,9 @@ edge_len = int(math.sqrt(len(tiles)))
 
 graf = defaultdict(dict)
 for tile in tiles:
-    for shape in tile[2]:
+    for shape in tile.shapes:
         for ival in shape:
-            graf[ival][tile[0]]=tile
+            graf[ival][tile.id]=tile
 
 mosaic = [[0 for _ in range(edge_len)] for _ in range(edge_len)]
 
