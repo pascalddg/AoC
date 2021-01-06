@@ -3,6 +3,7 @@ import math
 from itertools import product
 from collections import deque, defaultdict, namedtuple
 
+#TODO #2 make tile a class or namedtuple
 #TODO #3 use numpy for lines rotation
 #TODO #4 make 2nd part of the task
 
