@@ -1,7 +1,7 @@
 import time
 import math
 from itertools import product
-from collections import deque, defaultdict
+from collections import deque, defaultdict, namedtuple
 
 def load_data():
     with open("AoC2020/aoc20-20-data.txt", "r") as f:
@@ -14,8 +14,10 @@ def load_data():
  
     return data, testdata
 
+Shape = namedtuple('Shape',['N','E','S','W'])
 def edge2shape(edges):
-    return tuple(int(line,2) for line in edges)
+    return Shape(*edges)
+#    return tuple(int(line,2) for line in edges)
 
 
 def flip_h(edges):
@@ -47,7 +49,7 @@ def get_shapes(p_tile):
         
     return tuple(shapes)
 
-# [id, [lines], [shapes],[matching tiles]]
+# [id, [lines], [shapes], [matching tiles]]
 def parse_data(p_data):
     tiles = []
     tile=[0,[],[],[]]
@@ -72,16 +74,16 @@ def fit(mosaic, shape, px,py, len_mos):
         return False
 
     if px>0 and mosaic[px-1][py]:
-        if mosaic[px-1][py][1][1]!=shape[3]:
+        if mosaic[px-1][py][1].E != shape.W:
             return False
     if px<len_mos-1 and mosaic[px+1][py]:
-        if mosaic[px+1][py][1][3]!=shape[1]:
+        if mosaic[px+1][py][1].W != shape.E:
             return False
     if py>0 and mosaic[px][py-1]:
-        if mosaic[px][py-1][1][0]!=shape[2]:
+        if mosaic[px][py-1][1].N != shape.S:
             return False
     if py<len_mos-1 and mosaic[px][py+1]:
-        if mosaic[px][py+1][1][2]!=shape[0]:
+        if mosaic[px][py+1][1].S != shape.N:
             return False
 
     return True
@@ -89,7 +91,11 @@ def fit(mosaic, shape, px,py, len_mos):
 #dirc = ((-1,0),(1,0),(0,1),(0,-1))
 
 
-def dfs(mosaic, graf, tile, px, py, stack, depth):
+def dfs_v2(mosaic, graf, tile, px, py, pstack, depth):
+    stack = deque()
+    stack.append((px,py,tile))
+
+def dfs_v1(mosaic, graf, tile, px, py, pstack, depth):
 
 #    print(depth)
     
@@ -97,64 +103,64 @@ def dfs(mosaic, graf, tile, px, py, stack, depth):
         return False
     len_mos = len(mosaic)
 
-    if tile not in stack:
-        stack.append(tile)
+    if tile not in pstack:
+        pstack.append(tile)
         for shape in tile[2]:
             if fit(mosaic, shape, px, py, len_mos):
                 mosaic[px][py] = (tile[0], shape)
-                if len(stack)==len(tiles):
+                if len(pstack)==len(tiles):
                     return True
 
                 result = False
                 if px>0 and not mosaic[px-1][py]:
-                    edge_value = shape[3]
+                    edge_value = shape.W
                     matching_tiles = graf.get(edge_value)
                     for i, item in enumerate(matching_tiles.values()):
                         if item != tile:
                             depth.append(1)
-                            result = dfs(mosaic, graf, item, px-1, py, stack, depth)
+                            result = dfs_v1(mosaic, graf, item, px-1, py, pstack, depth)
                             depth.pop()
                     if result:
                         return result
                     continue
 
                 if px<len(mosaic)-1 and not mosaic[px+1][py] and not result:
-                    edge_value = shape[1]
+                    edge_value = shape.E
                     matching_tiles = graf.get(edge_value)
                     for i, item in enumerate(matching_tiles.values()):
                         if item != tile:
                             depth.append(2)
-                            result = dfs(mosaic, graf, item, px+1, py, stack, depth)
+                            result = dfs_v1(mosaic, graf, item, px+1, py, pstack, depth)
                             depth.pop()
                     if result:
                         return result
                     continue
 
                 if py>0 and not mosaic[px][py-1] and not result:
-                    edge_value = shape[2]                        
+                    edge_value = shape.S                        
                     matching_tiles = graf.get(edge_value)
                     for i, item in enumerate(matching_tiles.values()):
                         if item != tile:
                             depth.append(3)
-                            result = dfs(mosaic, graf, item, px, py-1, stack, depth)
+                            result = dfs_v1(mosaic, graf, item, px, py-1, pstack, depth)
                             depth.pop()
                     if result:
                         return result
                     continue
 
                 if py<len(mosaic)-1 and not mosaic[px][py+1] and not result:
-                    edge_value = shape[0]                        
+                    edge_value = shape.N                        
                     matching_tiles = graf.get(edge_value)
                     for i, item in enumerate(matching_tiles.values()):
                         if item != tile:
                             depth.append(4)
-                            result = dfs(mosaic, graf, item, px, py+1, stack, depth)
+                            result = dfs_v1(mosaic, graf, item, px, py+1, pstack, depth)
                             depth.pop()
                     if result:
                         return result
                     continue
 
-        stack.pop()
+        pstack.pop()
     mosaic[px][py] = 0
     return False
 
@@ -179,7 +185,7 @@ mosaic = [[0 for _ in range(edge_len)] for _ in range(edge_len)]
 
 found = False
 for i,tile in enumerate(tiles):
-    found = dfs(mosaic, graf, tile,0,0,[], [i])
+    found = dfs_v1(mosaic, graf, tile,0,0,[], [i])
     if found:
         break
 
