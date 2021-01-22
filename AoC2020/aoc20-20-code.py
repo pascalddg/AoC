@@ -1,10 +1,9 @@
 import time
 import math
+import numpy as np
 from itertools import product
 from collections import deque, defaultdict, namedtuple
 
-#TODO #2 make tile a class or namedtuple
-#TODO #3 use numpy for lines rotation
 #TODO #4 make 2nd part of the task
 
 def load_data():
@@ -19,39 +18,33 @@ def load_data():
     return data, testdata
 
 
-def flip_h(borders):
-    return [borders[2],borders[1][::-1],borders[0],borders[3][::-1]]
+Shape = namedtuple('Shape',['N','E','S','W','arr'])
+
+def make_shape(arr):
+    # borders = [arr[:,0], arr[0,:], arr[:,9], arr[9,:]]
+    borders = [arr[0,:], arr[:,9], arr[9,:], arr[:,0]]
+    num_borders = []
+    for b in borders:
+        num = int(''.join(map(str,b)),2)
+        num_borders.append(num)
+    sh = Shape(*num_borders,np.copy(arr))
+    return sh
 
 
-def rotate(borders):
-    return [borders[3][::-1],borders[0],borders[1][::-1],borders[2]]
-
-
-Shape = namedtuple('Shape',['N','E','S','W'])
-
-def get_shapes(pattern):
-
-    borders = [0,0,0,0]
-    borders[0] = pattern[0]
-    borders[2] = pattern[9]
-    e1, e3 =[], []
-    for line in pattern:
-        e1.append(line[9])
-        e3.append(line[0])
-    borders[1] = ''.join(e1)
-    borders[3] = ''.join(e3)
-    borders = [s.replace('.', '0').replace('#', '1') for s in borders]
-
-    shapes = set()
-    for i in range(4):
-        shapes.add(Shape(*borders))
-        shapes.add(Shape(*flip_h(borders)))
-        borders = rotate(borders)
+def get_shapes(array):
+  
+    shapes = []
+    arr = array
+    for _ in range(2):
+        for _ in range(4):
+            shapes.append(make_shape(arr))
+            arr = np.rot90(arr)
+        arr = np.fliplr(arr)
         
     return tuple(shapes)
 
 
-Tile = namedtuple('Tile',['id','pattern','shapes','edges'])
+Tile = namedtuple('Tile',['id','array','shapes','edges'])
 
 def parse_data(p_data):
     tiles = []     
@@ -60,10 +53,11 @@ def parse_data(p_data):
     for segment in segments:
         header, pattern = segment.split(':\n')
         tile_id=int(header[5:])
-        pattern=pattern.splitlines()
-        shapes=get_shapes(pattern)
+        bin_list=list(pattern.replace('\n','').replace('#','1').replace('.','0'))
+        arr = np.array(bin_list,dtype=np.int8).reshape(10,10)
+        shapes=get_shapes(arr)
         edges = None
-        tiles.append(Tile(tile_id, pattern,shapes, edges))
+        tiles.append(Tile(tile_id, arr,shapes, edges))
 
     return tiles
 
@@ -131,7 +125,7 @@ def dfs(mosaic, graf, tile, px, py, pstack):
 
 data, test_data = load_data()
 # uncomment the below line to use test data
-#data = test_data
+# data = test_data
 
 #part one
 
@@ -143,7 +137,9 @@ graf = defaultdict(dict)
 for tile in tiles:
     for shape in tile.shapes:
         for ival in shape:
-            graf[ival][tile.id]=tile
+            #todo: iterates over different types. fixit
+            if isinstance(ival,int):
+                graf[ival][tile.id]=tile
 
 mosaic = [[0 for _ in range(edge_len)] for _ in range(edge_len)]
 
