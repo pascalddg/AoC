@@ -7,7 +7,8 @@ abcone2threexyz
 xtwone3four
 4nineeightseven2
 zoneight234
-7pqrstsixteen'''.splitlines()
+7pqrstsixteen'''\
+.splitlines()
 
 result1 = 0
 for line in data:
